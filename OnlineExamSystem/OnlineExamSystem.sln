@@ -5,6 +5,8 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineExamSystem.API", "OnlineExamSystem.API\OnlineExamSystem.API.csproj", "{AFA1EF69-94D3-4EC5-B4CA-448DE763FB7F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineExamSystem.Data", "OnlineExamSystem.Data\OnlineExamSystem.Data.csproj", "{C2F41FD4-7CB4-4171-BB47-2F06EB1F6E2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{AFA1EF69-94D3-4EC5-B4CA-448DE763FB7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFA1EF69-94D3-4EC5-B4CA-448DE763FB7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFA1EF69-94D3-4EC5-B4CA-448DE763FB7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2F41FD4-7CB4-4171-BB47-2F06EB1F6E2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2F41FD4-7CB4-4171-BB47-2F06EB1F6E2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2F41FD4-7CB4-4171-BB47-2F06EB1F6E2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2F41FD4-7CB4-4171-BB47-2F06EB1F6E2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
