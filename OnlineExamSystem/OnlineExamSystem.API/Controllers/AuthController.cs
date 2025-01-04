@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineExamSystem.API.Helpers;
 using OnlineExamSystem.API.Models;
 using OnlineExamSystem.Data;
+using OnlineExamSystem.Data.Models;
 using LoginRequest = OnlineExamSystem.API.Models.LoginRequest;
+using RegisterRequest = OnlineExamSystem.API.Models.RegisterRequest;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -21,6 +24,63 @@ namespace OnlineExamSystem.API.Controllers
             _jwtTokenHelper = new JwtTokenGenerator(configuration);
             _passwordManager = passwordManager;
         }
+
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Please enter valid data!");
+            }
+
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            if (existingUser != null)
+            {
+                return BadRequest("Username is already taken!");
+            }
+
+            if (!request.Role.ToLower().Equals("student", StringComparison.InvariantCulture) 
+                && !request.Role.ToLower().Equals("teacher", StringComparison.InvariantCulture))
+            {
+                return BadRequest("Invalid role selection!");
+            }
+
+            if (!request.Password.Equals(request.ConfirmPassword, StringComparison.InvariantCulture))
+            {
+                return BadRequest("Passwords do not match!");
+            }
+
+            var user = new User
+            {
+                Username = request.Username,
+                PasswordHash = _passwordManager.HashPassword(request.Password),
+                Role = string.Concat(request.Role[0].ToString().ToUpper(), request.Role.AsSpan(1)), // will be removed when finishing FE
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error!");
+            }
+
+            var registerResponse = new RegisterResponse
+            {
+                Message = "Successful registration!"
+            };
+
+            return Ok(registerResponse);
+        }
+
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
