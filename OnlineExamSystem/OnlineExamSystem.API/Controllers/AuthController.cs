@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OnlineExamSystem.API.Attributes;
 using OnlineExamSystem.API.Helpers;
 using OnlineExamSystem.API.Models;
 using OnlineExamSystem.Data;
@@ -38,12 +39,6 @@ namespace OnlineExamSystem.API.Controllers
             if (existingUser != null)
             {
                 return BadRequest("Username is already taken!");
-            }
-
-            if (!request.Role.ToLower().Equals("student", StringComparison.InvariantCulture) 
-                && !request.Role.ToLower().Equals("teacher", StringComparison.InvariantCulture))
-            {
-                return BadRequest("Invalid role selection!");
             }
 
             if (!request.Password.Equals(request.ConfirmPassword, StringComparison.InvariantCulture))
@@ -109,7 +104,25 @@ namespace OnlineExamSystem.API.Controllers
                 Message = "Successfully logged in!"
             };
 
+            HttpContext.Session.SetString("AuthToken", token);
+            HttpContext.Session.SetString("UserRole", user.Role);
+
             return Ok(loginResponse);
+        }
+
+        [HttpPost("Logout")]
+        [RequireAuthorization]
+        public Task<IActionResult> Logout()
+        {
+            HttpContext.Session.Remove("AuthToken");
+            HttpContext.Session.Remove("UserRole");
+
+            var logoutResponse = new RegisterResponse
+            {
+                Message = "Logout successful!"
+            };
+
+            return Task.FromResult<IActionResult>(Ok(logoutResponse));
         }
     }
 }
