@@ -1,8 +1,10 @@
-﻿namespace OnlineExamSystem.API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OnlineExamSystem.API.Models
 {
     public class LoginRequest
     {
-        public string Username { get; set; } = null!;
-        public string Password { get; set; } = null!;
+        [Required] public string Username { get; set; }
+        [Required] public string Password { get; set; } 
     }
 }

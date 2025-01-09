@@ -1,0 +1,72 @@
+﻿@page "/Login"
+@using MudBlazor
+
+@inject ISnackbar SnackBar
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-4" style="width: 25rem;">
+        <h3 class="text-center mb-4">Влез в профила си</h3>
+
+        <EditForm Model="@Model" method="post" OnSubmit="@HandleLogin" FormName="Login">
+            <DataAnnotationsValidator />
+            <hr />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="@Model.Username" Class="form-control" aria-required="true" required />
+                <label for="email" class="form-label">Потребителско име</label>
+                <ValidationMessage For="() => Model.Username" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="@Model.Password" Class="form-control" aria-required="true"  required/>
+                <label for="password" class="form-label">Парола</label>
+                <ValidationMessage For="() => Model.Password" class="text-danger" />
+            </div>
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Влез</button>
+            </div>
+        </EditForm>
+
+        <div class="mt-4 text-center">
+            <a href="/register" class="text-decoration-none">Нямаш профил? Регистрирай се!</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm] protected LoginRequest Model { get; set; } = new();
+
+    private async Task HandleLogin()
+    {
+        var client = ClientFactory.CreateClient("API");
+
+        try
+        {
+            var response = await client.PostAsJsonAsync($"{client.BaseAddress}api/Auth/Login", Model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                await Task.Run(() => Console.WriteLine($"Token: {loginResponse?.Token}"));
+                SnackBar.Add("Logged in successfully!", Severity.Success);
+            }
+            else
+            {
+                SnackBar.Add("Invalid login credentials!", Severity.Error);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackBar.Add($"An error occurred: {ex.Message}!", Severity.Error);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/counter");
+    }
+
+    private void OnUsernameChanged(string value)
+    {
+        Model.Username = value;
+    }
+}
