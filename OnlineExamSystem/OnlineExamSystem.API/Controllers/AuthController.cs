@@ -47,11 +47,16 @@ namespace OnlineExamSystem.API.Controllers
                 return BadRequest("Passwords do not match!");
             }
 
+            if (!request.Role.Equals("Student", StringComparison.InvariantCulture) && !request.Role.Equals("Teacher", StringComparison.InvariantCulture))
+            {
+                return BadRequest("Invalid role selection!");
+            }
+
             var user = new User
             {
                 Username = request.Username,
                 PasswordHash = _passwordManager.HashPassword(request.Password),
-                Role = string.Concat(request.Role[0].ToString().ToUpper(), request.Role.AsSpan(1)), // will be removed when finishing FE
+                Role = request.Role,
                 CreatedAt = DateTime.UtcNow
             };
 

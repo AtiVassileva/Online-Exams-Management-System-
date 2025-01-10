@@ -12,6 +12,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient("API", client =>
 {
     client.BaseAddress = new Uri(configuration["ApiUrl"]!);
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
 });
 
 builder.Services.AddBlazoredLocalStorage();

@@ -1,0 +1,83 @@
+﻿@page "/Register"
+
+@inject ISnackbar SnackBar
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-4" style="width: 25rem;">
+        <h3 class="text-center mb-4">Регистрирай се</h3>
+
+        <EditForm Model="@Model" method="post" OnSubmit="@HandleRegister" FormName="Register">
+            <DataAnnotationsValidator />
+            <hr />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="@Model.Username" Class="form-control" aria-required="true" required />
+                <label class="form-label">Потребителско име</label>
+                <ValidationMessage For="() => Model.Username" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="@Model.Password" Class="form-control" aria-required="true" required />
+                <label class="form-label">Парола</label>
+                <ValidationMessage For="() => Model.Password" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="@Model.ConfirmPassword" Class="form-control" aria-required="true" required />
+                <label class="form-label">Повтори паролата</label>
+                <ValidationMessage For="() => Model.ConfirmPassword" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputSelect class="form-select" @bind-Value="@Model.Role">
+                    <option value="" disabled selected>Избери роля...</option>
+                    <option value="@StudentRole">Студент</option>
+                    <option value="@TeacherRole">Преподавател</option>
+                </InputSelect>
+                <ValidationMessage For="() => Model.Role" class="text-danger" />
+            </div>
+            <div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary">Регистрация</button>
+            </div>
+        </EditForm>
+
+        <div class="mt-4 text-center">
+            <a href="/Login" class="text-decoration-none">Имаш профил? Влез тук!</a>
+        </div>
+    </div>
+</div>
+
+@code {
+        private const string StudentRole = "Student";
+        private const string TeacherRole = "Teacher";
+
+    [SupplyParameterFromForm] protected RegisterRequest Model { get; set; } = new();
+
+    protected async Task HandleRegister()
+    {
+        var client = ClientFactory.CreateClient("API");
+
+        try
+        {
+            var response = await client.PostAsJsonAsync($"{client.BaseAddress}api/Auth/Register", Model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var registerResponse = await response.Content.ReadFromJsonAsync<RegisterResponse>();
+
+                SnackBar.Add(registerResponse!.Message, Severity.Success);
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                SnackBar.Add(errorContent, Severity.Error);
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackBar.Add($"An error occurred: {ex.Message}!", Severity.Error);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/Login");
+    }
+}
