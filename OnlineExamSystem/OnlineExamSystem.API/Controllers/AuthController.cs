@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineExamSystem.API.Attributes;
 using OnlineExamSystem.API.Helpers;
+using OnlineExamSystem.API.Infrastructure;
 using OnlineExamSystem.API.Models;
 using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
@@ -110,7 +111,7 @@ namespace OnlineExamSystem.API.Controllers
             return Ok(loginResponse);
         }
 
-        [HttpPost("Logout")]
+        [HttpGet("Logout")]
         [RequireAuthorization]
         public Task<IActionResult> Logout()
         {
@@ -123,6 +124,20 @@ namespace OnlineExamSystem.API.Controllers
             };
 
             return Task.FromResult<IActionResult>(Ok(logoutResponse));
+        }
+
+        [HttpGet("Token")]
+        public string GetCurrentUserAuthToken()
+        {
+            var token = HttpContext.GetAuthToken();
+            return token;
+        }
+        
+        [HttpGet("Role")]
+        public string GetCurrentUserRole()
+        {
+            var role = HttpContext.GetUserRole();
+            return role;
         }
     }
 }

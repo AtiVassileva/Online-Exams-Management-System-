@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using MudBlazor;
 using MudBlazor.Services;
 using OnlineExamSystem.Web.Components;
@@ -13,7 +14,7 @@ builder.Services.AddHttpClient("API", client =>
     client.BaseAddress = new Uri(configuration["ApiUrl"]!);
 });
 
-builder.Services.AddHttpContextAccessor();
+builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddMudServices(config =>
 {

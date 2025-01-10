@@ -1,0 +1,49 @@
+﻿@page "/Logout"
+
+@inject NavigationManager NavigationManager
+@inject ISnackbar SnackBar
+@inject IHttpClientFactory ClientFactory
+@inject ILocalStorageService LocalStorage
+
+<div class="confirmation-container">
+    <div class="confirmation-card">
+        <h1>Сигурен ли си?</h1>
+        <p>Сигурен ли си, че искаш да излезеш от акаунта си? В случай, че размислиш, трябва да въведеш потребителските си данни наново.</p>
+        <div class="button-group">
+            <button type="button" class="btn btn-primary" @onclick="StayLoggedIn">Остани</button>
+            <button type="button" class="btn btn-logout" @onclick="HandleLogout">Излез</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HttpClient _client;
+
+    protected void StayLoggedIn()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected async Task HandleLogout()
+    {
+        _client = ClientFactory.CreateClient("API");
+
+        try
+        {
+            var response = await _client.GetAsync($"{_client.BaseAddress}api/Auth/Logout");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var logoutResponse = await response.Content.ReadFromJsonAsync<LogoutResponse>();
+                await LocalStorage.RemoveItemsAsync(new[] { "username", "token" });
+                SnackBar.Add(logoutResponse!.Message, Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackBar.Add($"An error occurred: {ex.Message}!", Severity.Error);
+        }
+
+        NavigationManager.NavigateTo("/Login");
+    }
+}

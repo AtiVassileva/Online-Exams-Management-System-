@@ -37,14 +37,14 @@ h2 {
     font-size: 1rem;
 }
 
-.form-control:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
-}
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+    }
 
 .btn-primary {
-    background-color: #007bff;
+    background-color: #00008B;
     color: #ffffff;
     border: none;
     padding: 0.5rem 1rem;
@@ -54,6 +54,65 @@ h2 {
     transition: background-color 0.3s ease;
 }
 
-.btn-primary:hover {
-    background-color: #0056b3;
+    .btn-primary:hover {
+        background-color: #00AEEF;
+        color: #ffffff;
+    }
+    
+.confirmation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    margin: 0;
 }
+
+.confirmation-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    width: 90%;
+}
+
+    .confirmation-card h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #00008B;
+    }
+
+    .confirmation-card p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        color: #666;
+    }
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    pointer-events: auto !important; 
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.btn-logout {
+    background: #CD001A;
+    color: #fff;
+}
+
+    .btn-logout:hover {
+        color: #fff;
+        background: #D6001C;
+    }

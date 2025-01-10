@@ -1,9 +1,9 @@
 ﻿@page "/Login"
-@using MudBlazor
 
 @inject ISnackbar SnackBar
 @inject IHttpClientFactory ClientFactory
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
 
 <div class="d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow-lg p-4" style="width: 25rem;">
@@ -47,8 +47,14 @@
             if (response.IsSuccessStatusCode)
             {
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                await Task.Run(() => Console.WriteLine($"Token: {loginResponse?.Token}"));
-                SnackBar.Add("Logged in successfully!", Severity.Success);
+                await LocalStorage.SetItemAsStringAsync("username", Model.Username);
+
+                if (loginResponse?.Token != null)
+                {
+                    await LocalStorage.SetItemAsStringAsync("token", loginResponse?.Token);
+                }
+
+                SnackBar.Add(loginResponse!.Message, Severity.Success);
             }
             else
             {
@@ -63,10 +69,5 @@
         }
 
         NavigationManager.NavigateTo("/counter");
-    }
-
-    private void OnUsernameChanged(string value)
-    {
-        Model.Username = value;
     }
 }
