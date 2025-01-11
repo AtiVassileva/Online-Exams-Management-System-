@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineExamSystem.Data;
+using OnlineExamSystem.API.Models;
 using OnlineExamSystem.Data.Models;
 using OnlineExamSystem.Services;
 
@@ -10,15 +9,15 @@ namespace OnlineExamSystem.API.Controllers
     [ApiController]
     public class StudentsExamsController : ControllerBase
     {
-        private readonly OnlineExamSystemContext _context;
-        private readonly ExamService _examService;
+        private readonly StudentExamService _studentExamService;
         private readonly UserService _userService;
+        private readonly ExamService _examService;
 
-        public StudentsExamsController(OnlineExamSystemContext context, ExamService examService, UserService userService)
+        public StudentsExamsController(StudentExamService studentExamService, UserService userService, ExamService examService)
         {
-            _context = context;
-            _examService = examService;
+            _studentExamService = studentExamService;
             _userService = userService;
+            _examService = examService;
         }
 
         [HttpGet("{id}")]
@@ -27,7 +26,7 @@ namespace OnlineExamSystem.API.Controllers
             try
             {
                 var student = await _userService.GetUserById(id);
-                var exams = await _examService.GetExamsForStudent(student.Id);
+                var exams = await _studentExamService.GetExamsForStudent(student.Id);
                 return Ok(exams);
             }
             catch (NullReferenceException nre)
@@ -40,63 +39,73 @@ namespace OnlineExamSystem.API.Controllers
             }
         }
 
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudentExam(Guid id, StudentExam studentExam)
+        [HttpPost]
+        public async Task<ActionResult<IEnumerable<Exam>>> AssignStudentToExam([FromBody] StudentExamFormModel model)
         {
-            if (id != studentExam.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(studentExam).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var student = await _userService.GetUserById(model.StudentId);
+                var exam = await _examService.GetExamById(model.ExamId);
+
+                var result = await _studentExamService.AssignStudentToExam(student.Id, exam.Id);
+                return Ok(result);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (NullReferenceException nre)
             {
-                if (!StudentExamExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound(nre.Message);
             }
-
-            return NoContent();
-        }
-
-        [HttpPost]
-        public async Task<ActionResult<StudentExam>> PostStudentExam(StudentExam studentExam)
-        {
-            _context.StudentsExams.Add(studentExam);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetStudentExam", new { id = studentExam.Id }, studentExam);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteStudentExam(Guid id)
-        {
-            var studentExam = await _context.StudentsExams.FindAsync(id);
-            if (studentExam == null)
+            catch (InvalidOperationException ioe)
             {
-                return NotFound();
+                return BadRequest(ioe.Message);
             }
-
-            _context.StudentsExams.Remove(studentExam);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
 
-        private bool StudentExamExists(Guid id)
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<IEnumerable<Exam>>> UpdateStudentExam(Guid id, [FromBody] StudentExam model)
         {
-            return _context.StudentsExams.Any(e => e.Id == id);
+            try
+            {
+                await _userService.GetUserById(model.StudentId);
+                await _examService.GetExamById(model.ExamId);
+
+                var result = await _studentExamService.UpdateStudentExam(id, model);
+                return Ok(result);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (InvalidOperationException ioe)
+            {
+                return BadRequest(ioe.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> RemoveStudentFromExam(StudentExamFormModel model)
+        {
+            try
+            {
+                var result = await _studentExamService.RemoveStudentFromExam(model.StudentId, model.ExamId);
+                return Ok(result);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
     }
 }

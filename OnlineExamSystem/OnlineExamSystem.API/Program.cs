@@ -8,7 +8,10 @@ using OnlineExamSystem.Services;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -49,6 +52,7 @@ builder.Services.AddScoped<ExamService>();
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<ResultService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<StudentExamService>();
 
 var app = builder.Build();
 
