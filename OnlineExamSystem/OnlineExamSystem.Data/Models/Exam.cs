@@ -1,4 +1,6 @@
-﻿namespace OnlineExamSystem.Data.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OnlineExamSystem.Data.Models;
 
 public class Exam
 {
@@ -12,11 +14,12 @@ public class Exam
 
     public int Duration { get; set; }
 
-    public Guid AuthorId { get; set; }
+    [Required] public Guid AuthorId { get; set; }
+    public virtual User? Author { get; set; } 
 
-    public virtual User Author { get; set; } = null!;
-    public Guid StatusId { get; set; }
-    public Status Status { get; set; } = null!;
+    [Required] public Guid StatusId { get; set; }
+    public Status? Status { get; set; } 
+
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<Result> Results { get; set; } = new List<Result>();

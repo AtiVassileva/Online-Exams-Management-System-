@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using OnlineExamSystem.Data;
 using System.Text;
 using OnlineExamSystem.API.Helpers;
+using OnlineExamSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -43,6 +44,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<PasswordManager>();
+builder.Services.AddScoped<ExamService>();
 
 var app = builder.Build();
 

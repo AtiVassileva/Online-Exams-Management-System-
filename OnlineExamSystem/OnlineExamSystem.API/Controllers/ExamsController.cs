@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -9,88 +8,90 @@ namespace OnlineExamSystem.API.Controllers
     [ApiController]
     public class ExamsController : ControllerBase
     {
-        private readonly OnlineExamSystemContext _context;
+        private readonly ExamService _examService;
 
-        public ExamsController(OnlineExamSystemContext context)
+        public ExamsController(ExamService examService)
         {
-            _context = context;
+            _examService = examService;
         }
         
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Exam>>> GetExams()
         {
-            return await _context.Exams.ToListAsync();
+            return Ok(await _examService.GetAllExams());
         }
         
         [HttpGet("{id}")]
         public async Task<ActionResult<Exam>> GetExam(Guid id)
         {
-            var exam = await _context.Exams.FindAsync(id);
-
-            if (exam == null)
+            try
             {
-                return NotFound();
+                var exam = await _examService.GetExamById(id);
+                return Ok(exam);
             }
-
-            return exam;
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutExam(Guid id, Exam exam)
+
+        [HttpPost]
+        public async Task<ActionResult<Exam>> PostExam([FromBody]Exam exam)
         {
-            if (id != exam.Id)
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Entry(exam).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var id = await _examService.CreateExam(exam);
+                return Ok(id);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!ExamExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
-
-            return NoContent();
         }
-        
-        [HttpPost]
-        public async Task<ActionResult<Exam>> PostExam(Exam exam)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutExam(Guid id, Exam exam)
         {
-            _context.Exams.Add(exam);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetExam", new { id = exam.Id }, exam);
+            try
+            {
+                var isSuccessful = await _examService.EditExam(id, exam);
+                return Ok(isSuccessful);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteExam(Guid id)
         {
-            var exam = await _context.Exams.FindAsync(id);
-            if (exam == null)
+            try
             {
-                return NotFound();
+                var result = await _examService.DeleteExam(id);
+                return Ok(result);
             }
-
-            _context.Exams.Remove(exam);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool ExamExists(Guid id)
-        {
-            return _context.Exams.Any(e => e.Id == id);
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
     }
 }

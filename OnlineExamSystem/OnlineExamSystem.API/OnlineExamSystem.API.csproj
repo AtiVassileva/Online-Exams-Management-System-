@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineExamSystem.Data\OnlineExamSystem.Data.csproj" />
+    <ProjectReference Include="..\OnlineExamSystem.Services\OnlineExamSystem.Services.csproj" />
   </ItemGroup>
 
 </Project>
