@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -15,52 +11,33 @@ namespace OnlineExamSystem.API.Controllers
     public class StudentsExamsController : ControllerBase
     {
         private readonly OnlineExamSystemContext _context;
+        private readonly ExamService _examService;
+        private readonly UserService _userService;
 
-        public StudentsExamsController(OnlineExamSystemContext context)
+        public StudentsExamsController(OnlineExamSystemContext context, ExamService examService, UserService userService)
         {
             _context = context;
+            _examService = examService;
+            _userService = userService;
         }
-        
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentExam>>> GetStudentsExams()
-        {
-            return await _context.StudentsExams.ToListAsync();
-        }
-        
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<StudentExam>> GetStudentExam(Guid id)
-        //{
-        //    var studentExam = await _context.StudentsExams.FindAsync(id);
-
-        //    if (studentExam == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return studentExam;
-        //}
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<List<Exam>>> GetExamsForStudent(Guid id)
+        public async Task<ActionResult<IEnumerable<Exam>>> GetExamsForStudent(Guid id)
         {
-            var student = await _context.Users.FirstOrDefaultAsync(s => s.Id == id);
-
-            if (student == null)
+            try
             {
-                return NotFound("Student does not exist!");
+                var student = await _userService.GetUserById(id);
+                var exams = await _examService.GetExamsForStudent(student.Id);
+                return Ok(exams);
             }
-
-            var examsForStudentIds = _context.StudentsExams
-                .Where(se => se.StudentId == id)
-                .Select(se => se.ExamId)
-                .ToList();
-
-            var exams = _context.Exams
-                    .Include(e => e.Status)
-                    .Where(e => examsForStudentIds.Contains(e.Id))
-                    .ToList();
-
-            return exams;
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
 
 
@@ -92,7 +69,7 @@ namespace OnlineExamSystem.API.Controllers
 
             return NoContent();
         }
-        
+
         [HttpPost]
         public async Task<ActionResult<StudentExam>> PostStudentExam(StudentExam studentExam)
         {
@@ -101,7 +78,7 @@ namespace OnlineExamSystem.API.Controllers
 
             return CreatedAtAction("GetStudentExam", new { id = studentExam.Id }, studentExam);
         }
-        
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudentExam(Guid id)
         {

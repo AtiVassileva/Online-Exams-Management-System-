@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
 using OnlineExamSystem.Services;
 

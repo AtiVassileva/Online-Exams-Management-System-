@@ -6,7 +6,6 @@ namespace OnlineExamSystem.Services
 {
     public class ResultService
     {
-
         private readonly OnlineExamSystemContext _dbContext;
         private readonly DbSet<Result> _results;
 

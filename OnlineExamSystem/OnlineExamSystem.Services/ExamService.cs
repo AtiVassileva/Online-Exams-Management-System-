@@ -39,6 +39,22 @@ namespace OnlineExamSystem.Services
             return exam.Id;
         }
 
+        public async Task<IEnumerable<Exam>> GetExamsForStudent(Guid studentId)
+        {
+            var examsForStudentIds = await _dbContext.StudentsExams
+                .Where(se => se.StudentId == studentId)
+                .Select(se => se.ExamId)
+                .ToListAsync();
+
+            var exams = await _exams
+                .Include(e => e.Author)
+                .Include(e => e.Status)
+                .Where(e => examsForStudentIds.Contains(e.Id))
+                .ToListAsync();
+
+            return exams;
+        }
+
         public async Task<bool> EditExam(Guid id, Exam modifiedExam)
         {
             var exam = await GetExamById(id);

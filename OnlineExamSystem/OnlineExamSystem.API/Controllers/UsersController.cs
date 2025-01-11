@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -9,88 +8,90 @@ namespace OnlineExamSystem.API.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly OnlineExamSystemContext _context;
+        private readonly UserService _userService;
 
-        public UsersController(OnlineExamSystemContext context)
+        public UsersController(UserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            return Ok(await _userService.GetAllUsers());
         }
-        
+
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(Guid id)
+        public async Task<ActionResult> GetUser(Guid id)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _userService.GetUserById(id);
+                return Ok(user);
             }
-
-            return user;
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(Guid id, User user)
+
+        [HttpPost]
+        public async Task<ActionResult<User>> PostUser([FromBody] User user)
         {
-            if (id != user.Id)
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var id = await _userService.CreateUser(user);
+                return Ok(id);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
-
-            return NoContent();
         }
-        
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> PutUser(Guid id, string newUsername)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            try
+            {
+                var isSuccessful = await _userService.EditUser(id, newUsername);
+                return Ok(isSuccessful);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        public async Task<ActionResult> DeleteUser(Guid id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var user = await _userService.DeleteUser(id);
+                return Ok(user);
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(Guid id)
-        {
-            return _context.Users.Any(e => e.Id == id);
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
     }
 }

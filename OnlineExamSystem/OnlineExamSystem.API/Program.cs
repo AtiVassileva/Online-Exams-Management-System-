@@ -48,6 +48,7 @@ builder.Services.AddScoped<PasswordManager>();
 builder.Services.AddScoped<ExamService>();
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<ResultService>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
