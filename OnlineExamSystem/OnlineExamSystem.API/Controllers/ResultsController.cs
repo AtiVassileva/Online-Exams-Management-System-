@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -9,88 +10,90 @@ namespace OnlineExamSystem.API.Controllers
     [ApiController]
     public class ResultsController : ControllerBase
     {
-        private readonly OnlineExamSystemContext _context;
+        private readonly ResultService _resultService;
 
-        public ResultsController(OnlineExamSystemContext context)
+        public ResultsController(ResultService resultService)
         {
-            _context = context;
+            _resultService = resultService;
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Result>>> GetResults()
         {
-            return await _context.Results.ToListAsync();
+            return Ok(await _resultService.GetAllResults());
         }
-        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Result>> GetResult(Guid id)
         {
-            var result = await _context.Results.FindAsync(id);
-
-            if (result == null)
+            try
             {
-                return NotFound();
+                var result = await _resultService.GetResultById(id);
+                return Ok(result);
             }
-
-            return result;
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutResult(Guid id, Result result)
+
+        [HttpPost]
+        public async Task<ActionResult<Result>> PostResult([FromBody] Result result)
         {
-            if (id != result.Id)
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Entry(result).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var id = await _resultService.CreateResult(result);
+                return Ok(id);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!ResultExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
-
-            return NoContent();
         }
-        
-        [HttpPost]
-        public async Task<ActionResult<Result>> PostResult(Result result)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutResult(Guid id, Result result)
         {
-            _context.Results.Add(result);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetResult", new { id = result.Id }, result);
+            try
+            {
+                var isSuccessful = await _resultService.EditResult(id, result);
+                return Ok(isSuccessful);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteResult(Guid id)
         {
-            var result = await _context.Results.FindAsync(id);
-            if (result == null)
+            try
             {
-                return NotFound();
+                var result = await _resultService.DeleteResult(id);
+                return Ok(result);
             }
-
-            _context.Results.Remove(result);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool ResultExists(Guid id)
-        {
-            return _context.Results.Any(e => e.Id == id);
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
     }
 }

@@ -44,8 +44,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<PasswordManager>();
+
 builder.Services.AddScoped<ExamService>();
 builder.Services.AddScoped<QuestionService>();
+builder.Services.AddScoped<ResultService>();
 
 var app = builder.Build();
 
