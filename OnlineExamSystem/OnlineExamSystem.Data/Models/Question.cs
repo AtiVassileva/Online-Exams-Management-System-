@@ -1,10 +1,10 @@
-﻿namespace OnlineExamSystem.Data.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace OnlineExamSystem.Data.Models;
 
 public class Question
 {
     public Guid Id { get; set; }
-
-    public Guid ExamId { get; set; }
 
     public string QuestionText { get; set; } = null!;
 
@@ -12,5 +12,6 @@ public class Question
 
     public int Points { get; set; }
 
-    public virtual Exam Exam { get; set; } = null!;
+    [Required] public Guid ExamId { get; set; }
+    public virtual Exam? Exam { get; set; }
 }

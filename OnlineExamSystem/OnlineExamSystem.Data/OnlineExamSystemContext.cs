@@ -15,7 +15,6 @@ public class OnlineExamSystemContext : DbContext
     }
 
     public virtual DbSet<Exam> Exams { get; set; } = null!;
-    public virtual DbSet<Notification> Notifications { get; set; } = null!;
     public virtual DbSet<Question> Questions { get; set; } = null!;
     public virtual DbSet<Result> Results { get; set; } = null!;
     public virtual DbSet<User> Users { get; set; } = null!;
@@ -39,17 +38,6 @@ public class OnlineExamSystemContext : DbContext
             entity.HasOne(d => d.Author).WithMany(p => p.Exams)
                 .HasForeignKey(d => d.AuthorId)
                 .HasConstraintName("FK_Exams_Author");
-        });
-
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Notifica__3214EC072017B289");
-
-            entity.Property(e => e.Id).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Message).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Question>(entity =>

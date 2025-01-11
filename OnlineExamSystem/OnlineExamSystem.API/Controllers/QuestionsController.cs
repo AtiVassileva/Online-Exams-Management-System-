@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 
 namespace OnlineExamSystem.API.Controllers
 {
@@ -9,88 +8,90 @@ namespace OnlineExamSystem.API.Controllers
     [ApiController]
     public class QuestionsController : ControllerBase
     {
-        private readonly OnlineExamSystemContext _context;
+        private readonly QuestionService _questionService;
 
-        public QuestionsController(OnlineExamSystemContext context)
+        public QuestionsController(QuestionService questionService)
         {
-            _context = context;
+            _questionService = questionService;
         }
-        
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Question>>> GetQuestions()
         {
-            return await _context.Questions.ToListAsync();
+            return Ok(await _questionService.GetAllQuestions());
         }
-        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Question>> GetQuestion(Guid id)
         {
-            var question = await _context.Questions.FindAsync(id);
-
-            if (question == null)
+            try
             {
-                return NotFound();
+                var question = await _questionService.GetQuestionById(id);
+                return Ok(question);
             }
-
-            return question;
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutQuestion(Guid id, Question question)
+
+        [HttpPost]
+        public async Task<ActionResult<Question>> PostQuestion([FromBody] Question question)
         {
-            if (id != question.Id)
+            if (!ModelState.IsValid)
             {
                 return BadRequest();
             }
 
-            _context.Entry(question).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var id = await _questionService.CreateQuestion(question);
+                return Ok(id);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception e)
             {
-                if (!QuestionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
             }
-
-            return NoContent();
         }
-        
-        [HttpPost]
-        public async Task<ActionResult<Question>> PostQuestion(Question question)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutQuestion(Guid id, Question question)
         {
-            _context.Questions.Add(question);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetQuestion", new { id = question.Id }, question);
+            try
+            {
+                var isSuccessful = await _questionService.EditQuestion(id, question);
+                return Ok(isSuccessful);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
-        
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuestion(Guid id)
         {
-            var question = await _context.Questions.FindAsync(id);
-            if (question == null)
+            try
             {
-                return NotFound();
+                var result = await _questionService.DeleteQuestion(id);
+                return Ok(result);
             }
-
-            _context.Questions.Remove(question);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool QuestionExists(Guid id)
-        {
-            return _context.Questions.Any(e => e.Id == id);
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
     }
 }
