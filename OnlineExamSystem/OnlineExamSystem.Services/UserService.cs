@@ -42,7 +42,7 @@ namespace OnlineExamSystem.Services
         public async Task<bool> EditUser(Guid id, string newUsername)
         {
             var user = await GetUserById(id);
-            var usernameExists = _users.Any(u => u.Username.Equals(newUsername));
+            var usernameExists = UsernameExists(newUsername);
 
             if (usernameExists)
             {
@@ -64,6 +64,11 @@ namespace OnlineExamSystem.Services
             await _dbContext.SaveChangesAsync();
 
             return true;
+        }
+
+        public bool UsernameExists(string username)
+        {
+            return _users.Any(u => u.Username.Equals(username));
         }
     }
 }

@@ -6,6 +6,7 @@ using OnlineExamSystem.API.Infrastructure;
 using OnlineExamSystem.API.Models;
 using OnlineExamSystem.Data;
 using OnlineExamSystem.Data.Models;
+using OnlineExamSystem.Services;
 using LoginRequest = OnlineExamSystem.API.Models.LoginRequest;
 using RegisterRequest = OnlineExamSystem.API.Models.RegisterRequest;
 
@@ -18,12 +19,14 @@ namespace OnlineExamSystem.API.Controllers
         private readonly OnlineExamSystemContext _context;
         private readonly JwtTokenGenerator _jwtTokenHelper;
         private readonly PasswordManager _passwordManager;
+        private readonly UserService _userService;
 
-        public AuthController(OnlineExamSystemContext context, IConfiguration configuration, PasswordManager passwordManager)
+        public AuthController(OnlineExamSystemContext context, IConfiguration configuration, PasswordManager passwordManager, UserService userService)
         {
             _context = context;
             _jwtTokenHelper = new JwtTokenGenerator(configuration);
             _passwordManager = passwordManager;
+            _userService = userService;
         }
 
         [HttpPost("Register")]
@@ -34,9 +37,9 @@ namespace OnlineExamSystem.API.Controllers
                 return BadRequest("Please enter valid data!");
             }
 
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            var existingUser = _userService.UsernameExists(request.Username);
 
-            if (existingUser != null)
+            if (existingUser)
             {
                 return BadRequest("Username is already taken!");
             }
@@ -59,26 +62,26 @@ namespace OnlineExamSystem.API.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-
             try
             {
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal server error!");
-            }
+                var newUserId = await _userService.CreateUser(user);
 
-            var registerResponse = new RegisterResponse
-            {
-                Message = "Successful registration!"
-            };
+                if (newUserId == Guid.Empty)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
 
-            return Ok(registerResponse);
+                var registerResponse = new RegisterResponse
+                {
+                    Message = "Successful registration!"
+                };
+
+                return Ok(registerResponse);
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
         }
 
 
