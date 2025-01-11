@@ -19,6 +19,8 @@ public class OnlineExamSystemContext : DbContext
     public virtual DbSet<Question> Questions { get; set; } = null!;
     public virtual DbSet<Result> Results { get; set; } = null!;
     public virtual DbSet<User> Users { get; set; } = null!;
+    public virtual DbSet<StudentExam> StudentsExams { get; set; } = null!;
+    public virtual DbSet<Status> Statuses { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Server=.;Database=OnlineExamSystem;Trusted_Connection=True;TrustServerCertificate=True;");

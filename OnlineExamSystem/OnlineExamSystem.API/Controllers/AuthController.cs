@@ -107,7 +107,8 @@ namespace OnlineExamSystem.API.Controllers
             var loginResponse = new LoginResponse
             {
                 Token = token,
-                Message = "Successfully logged in!"
+                Message = "Successfully logged in!",
+                UserId = user.Id
             };
 
             HttpContext.Session.SetString("AuthToken", token);

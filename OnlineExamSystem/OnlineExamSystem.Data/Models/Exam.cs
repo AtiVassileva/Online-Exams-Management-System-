@@ -15,7 +15,8 @@ public class Exam
     public Guid AuthorId { get; set; }
 
     public virtual User Author { get; set; } = null!;
-
+    public Guid StatusId { get; set; }
+    public Status Status { get; set; } = null!;
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<Result> Results { get; set; } = new List<Result>();

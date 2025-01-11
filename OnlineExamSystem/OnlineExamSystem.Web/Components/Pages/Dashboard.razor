@@ -1,0 +1,90 @@
+﻿@page "/Dashboard"
+@using OnlineExamSystem.Data.Models
+
+@inject IHttpClientFactory ClientFactory
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorage
+
+<h3>Изпити</h3>
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudPaper Class="p-4">
+        <MudTable Items="_exams" Striped="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Име</MudTh>
+                <MudTh>Начален час</MudTh>
+                <MudTh>Статус</MudTh>
+                <MudTh>Действия</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Title</MudTd>
+                <MudTd>@context.StartTime.ToString("dd/MM/yyyy HH:mm")</MudTd>
+                <MudTd>@(context.Status.Name )</MudTd>
+                <MudTd>
+                    @if (context.AuthorId != null)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
+                            Започни изпита
+                        </MudButton>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Success">Завършен</MudText>
+                    }
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+}
+<MudSnackbarProvider />
+
+@code {
+    private List<Exam> _exams = new();
+    private bool _loading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await LoadExams();
+    }
+
+    private async Task LoadExams()
+    {
+        try
+        {
+            var client = ClientFactory.CreateClient("API");
+            var userId = Guid.Parse(await LocalStorage.GetItemAsStringAsync("userId") ?? string.Empty);
+            var response = await client.GetFromJsonAsync<List<Exam>>($"api/StudentsExams/{userId}");
+
+            if (response != null)
+            {
+                _exams = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading exams: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task StartExam(Guid examId)
+    {
+        // Redirect to the exam page or take specific action
+        Snackbar.Add("Starting exam...", Severity.Info);
+        NavigationManager.NavigateTo($"/exam/{examId}");
+    }
+}

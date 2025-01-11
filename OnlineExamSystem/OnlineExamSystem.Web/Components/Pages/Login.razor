@@ -51,7 +51,12 @@
 
                 if (loginResponse?.Token != null)
                 {
-                    await LocalStorage.SetItemAsStringAsync("token", loginResponse?.Token);
+                    await LocalStorage.SetItemAsStringAsync("token", loginResponse.Token);
+                } 
+                
+                if (loginResponse?.UserId != null)
+                {
+                    await LocalStorage.SetItemAsStringAsync("userId", loginResponse.UserId.ToString());
                 }
 
                 SnackBar.Add(loginResponse!.Message, Severity.Success);
@@ -68,6 +73,6 @@
             return;
         }
 
-        NavigationManager.NavigateTo("/counter");
+        NavigationManager.NavigateTo("/Dashboard");
     }
 }
