@@ -1,5 +1,7 @@
 ﻿@page "/Dashboard"
 @using OnlineExamSystem.Data.Models
+@using System.Text.Json
+@using System.Text.Json.Serialization
 
 @inject IHttpClientFactory ClientFactory
 @inject ISnackbar Snackbar
@@ -15,31 +17,38 @@
 else
 {
     <MudPaper Class="p-4">
-        <MudTable Items="_exams" Striped="true" Hover="true">
-            <HeaderContent>
-                <MudTh>Име</MudTh>
-                <MudTh>Начален час</MudTh>
-                <MudTh>Статус</MudTh>
-                <MudTh>Действия</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Title</MudTd>
-                <MudTd>@context.StartTime.ToString("dd/MM/yyyy HH:mm")</MudTd>
-                <MudTd>@(context.Status.Name )</MudTd>
-                <MudTd>
-                    @if (context.AuthorId != null)
-                    {
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
-                            Започни изпита
-                        </MudButton>
-                    }
-                    else
-                    {
-                        <MudText Color="Color.Success">Завършен</MudText>
-                    }
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        @if (_exams.Any())
+        {
+            <MudTable Items="_exams" Striped="true" Hover="true">
+                <HeaderContent>
+                    <MudTh>Име</MudTh>
+                    <MudTh>Начален час</MudTh>
+                    <MudTh>Статус</MudTh>
+                    <MudTh>Действия</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Title</MudTd>
+                    <MudTd>@context.StartTime.ToString("dd/MM/yyyy HH:mm")</MudTd>
+                    <MudTd>@(context.Status.Name )</MudTd>
+                    <MudTd>
+                        @if (context.AuthorId != null)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
+                                Започни изпита
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText Color="Color.Success">Завършен</MudText>
+                        }
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <h2>Нямате налични изпити.</h2>
+        }
     </MudPaper>
 }
 <MudSnackbarProvider />
@@ -60,15 +69,24 @@ else
 
     private async Task LoadExams()
     {
+        var options = new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.Preserve, 
+            PropertyNameCaseInsensitive = true
+        };
+
         try
         {
             var client = ClientFactory.CreateClient("API");
             var userId = Guid.Parse(await LocalStorage.GetItemAsStringAsync("userId") ?? string.Empty);
-            var response = await client.GetFromJsonAsync<List<Exam>>($"api/StudentsExams/{userId}");
+            var response = await client.GetAsync($"api/StudentsExams/{userId}");
 
-            if (response != null)
+            var content = await response.Content.ReadAsStringAsync();
+            var exams = JsonSerializer.Deserialize<IEnumerable<Exam>>(content, options);
+
+            if (!string.IsNullOrWhiteSpace(content) && exams != null && exams.Any())
             {
-                _exams = response;
+                _exams = exams.ToList();
             }
         }
         catch (Exception ex)
@@ -78,6 +96,7 @@ else
         finally
         {
             _loading = false;
+            StateHasChanged();
         }
     }
 
