@@ -1,9 +1,8 @@
 INSERT INTO Users (Id, Username, PasswordHash, Role, CreatedAt) VALUES
-(NEWID(), 'teacher1', 'hashed_password_teacher1', 'Teacher', GETDATE()),
-(NEWID(), 'teacher2', 'hashed_password_teacher2', 'Teacher', GETDATE()),
-(NEWID(), 'student1', 'hashed_password_student1', 'Student', GETDATE()),
-(NEWID(), 'student2', 'hashed_password_student2', 'Student', GETDATE()),
-(NEWID(), 'student3', 'hashed_password_student3', 'Student', GETDATE());
+(NEWID(), 'teacher1', '3e3588b9f023ec5eb6d53d421c8674c1c1ee1c16f027718b337165ec9ffe9934', 'Teacher', GETDATE()), -- raw password: hashed_password_teacher1
+(NEWID(), 'student1', 'd52e919a3b93684cb66acea73a9280642b6e4e3d33248ff9d5f582faedb1596d', 'Student', GETDATE()), -- raw password: hashed_password_student1
+(NEWID(), 'student2', 'b6bb1b87260483da1c25f0226e5759549937fcd69e7a0ddb64cd710efba1ca43', 'Student', GETDATE()), -- raw password: hashed_password_student2
+(NEWID(), 'student3', '4319c38835a098624dbab7948cbc51ea3065677b869d52a200e13a0ee712b239', 'Student', GETDATE()); -- raw password: hashed_password_student3
 
 INSERT INTO Statuses (Id, Name) VALUES
 (NEWID(), 'Upcoming'),
