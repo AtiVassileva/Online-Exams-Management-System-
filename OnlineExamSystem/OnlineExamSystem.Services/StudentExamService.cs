@@ -15,18 +15,6 @@ namespace OnlineExamSystem.Services
             _studentExams = context.StudentsExams;
         }
 
-        public async Task<StudentExam> GetStudentExamById(Guid id)
-        {
-            var studentExam = await _studentExams.FirstOrDefaultAsync(se => se.Id == id);
-
-            if (studentExam == null)
-            {
-                throw new NullReferenceException("Student exam does not exist!");
-            }
-
-            return studentExam;
-        }
-
         public async Task<IEnumerable<Exam>> GetExamsForStudent(Guid studentId)
         {
             var examsForStudentIds = await _studentExams
@@ -56,27 +44,10 @@ namespace OnlineExamSystem.Services
             var studentExam = new StudentExam
             {
                 StudentId = studentId,
-                ExamId = examId,
-                StatusId = Guid.Parse("C289614A-4E41-4A7D-9698-470BAFED4A5B"),
-                Result = 0m,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                ExamId = examId
             };
 
             await _studentExams.AddAsync(studentExam);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-        
-        public async Task<bool> UpdateStudentExam(Guid id, StudentExam modifiedStudentExam)
-        {
-            var studentExam = await GetStudentExamById(id);
-
-            studentExam.StatusId = modifiedStudentExam.StatusId;
-            studentExam.Result = modifiedStudentExam.Result;
-            studentExam.UpdatedAt = DateTime.UtcNow;
-            
             await _dbContext.SaveChangesAsync();
 
             return true;

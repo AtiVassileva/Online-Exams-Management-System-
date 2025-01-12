@@ -1,11 +1,21 @@
+--- 1. Run to create the db 
 CREATE DATABASE OnlineExamSystem;
 
+--- 2. Run to switch to the db 
+USE OnlineExamSystem;
+
+--- 3. Run to create the tables 
 CREATE TABLE Users (
     Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     Username NVARCHAR(50) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(256) NOT NULL,
     Role NVARCHAR(20) NOT NULL, -- Student, Teacher
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+CREATE TABLE Statuses (
+    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    Name NVARCHAR(50) NOT NULL UNIQUE,
 );
 
 CREATE TABLE Exams (
@@ -15,7 +25,9 @@ CREATE TABLE Exams (
     StartTime DATETIME NOT NULL,
     Duration INT NOT NULL, -- In minutes
     AuthorId UNIQUEIDENTIFIER NOT NULL,
-    CONSTRAINT FK_Exams_Author FOREIGN KEY (AuthorId) REFERENCES Users(Id) ON DELETE NO ACTION
+    StatusId UNIQUEIDENTIFIER NOT NULL,
+    CONSTRAINT FK_Exams_Author FOREIGN KEY (AuthorId) REFERENCES Users(Id) ON DELETE NO ACTION,
+    CONSTRAINT FK_Exams_Status FOREIGN KEY (StatusId) REFERENCES Statuses(Id) ON DELETE NO ACTION
 );
 
 
@@ -38,8 +50,8 @@ CREATE TABLE Results (
     CONSTRAINT FK_Results_Exam FOREIGN KEY (ExamId) REFERENCES Exams(Id) ON DELETE NO ACTION
 );
 
-CREATE TABLE Notifications (
-    Id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    Message NVARCHAR(255) NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
+CREATE TABLE StudentsExams (
+    StudentId UNIQUEIDENTIFIER NOT NULL,
+    ExamId UNIQUEIDENTIFIER NOT NULL,
+	PRIMARY KEY (StudentId, ExamId)
 );

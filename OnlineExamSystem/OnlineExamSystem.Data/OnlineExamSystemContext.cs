@@ -88,6 +88,11 @@ public class OnlineExamSystemContext : DbContext
             entity.Property(e => e.Username).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<StudentExam>(entity =>
+        {
+            entity.HasKey(e => new {e.StudentId, e.ExamId});
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 }

@@ -64,32 +64,6 @@ namespace OnlineExamSystem.API.Controllers
             }
         }
 
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<IEnumerable<Exam>>> UpdateStudentExam(Guid id, [FromBody] StudentExam model)
-        {
-            try
-            {
-                await _userService.GetUserById(model.StudentId);
-                await _examService.GetExamById(model.ExamId);
-
-                var result = await _studentExamService.UpdateStudentExam(id, model);
-                return Ok(result);
-            }
-            catch (NullReferenceException nre)
-            {
-                return NotFound(nre.Message);
-            }
-            catch (InvalidOperationException ioe)
-            {
-                return BadRequest(ioe.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
-            }
-        }
-
         [HttpDelete]
         public async Task<IActionResult> RemoveStudentFromExam(StudentExamFormModel model)
         {
