@@ -1,7 +1,8 @@
 ﻿@page "/Dashboard"
 @using OnlineExamSystem.Data.Models
-@using System.Text.Json
 @using System.Text.Json.Serialization
+@using Newtonsoft.Json
+@using JsonSerializer = System.Text.Json.JsonSerializer
 
 @inject IHttpClientFactory ClientFactory
 @inject ISnackbar Snackbar
@@ -29,14 +30,11 @@ else
                 <RowTemplate>
                     <MudTd>@context.Title</MudTd>
                     <MudTd>@context.StartTime.ToString("dd/MM/yyyy HH:mm")</MudTd>
-                    <MudTd>@(context.Status.Name )</MudTd>
+                    <MudTd>@(context.Status.Name)</MudTd>
                     <MudTd>
                         @if (context.AuthorId != null)
                         {
                             <a class="btn btn-success" href="@($"/StartExam/{context.Id}")">Започни изпита</a>
-                            @* <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
-                                Започни изпита
-                            </MudButton> *@
                         }
                         else
                         {
@@ -70,11 +68,10 @@ else
 
     private async Task LoadExams()
     {
-        var options = new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.Preserve, 
-            PropertyNameCaseInsensitive = true
-        };
+        var settings = new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects
+            };
 
         try
         {
@@ -83,7 +80,7 @@ else
             var response = await client.GetAsync($"api/StudentsExams/{userId}");
 
             var content = await response.Content.ReadAsStringAsync();
-            var exams = JsonSerializer.Deserialize<IEnumerable<Exam>>(content, options);
+            var exams = JsonConvert.DeserializeObject<IEnumerable<Exam>>(content, settings);
 
             if (!string.IsNullOrWhiteSpace(content) && exams != null && exams.Any())
             {
@@ -99,11 +96,5 @@ else
             _loading = false;
             StateHasChanged();
         }
-    }
-
-    private void StartExam(Guid examId)
-    {
-        NavigationManager.NavigateTo($"/Exam/{examId}");
-        Snackbar.Add("Starting exam...", Severity.Info);
     }
 }
