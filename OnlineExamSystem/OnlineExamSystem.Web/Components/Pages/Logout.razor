@@ -34,9 +34,8 @@
 
             if (response.IsSuccessStatusCode)
             {
-                var logoutResponse = await response.Content.ReadFromJsonAsync<LogoutResponse>();
                 await LocalStorage.RemoveItemsAsync(new[] { "username", "token" });
-                SnackBar.Add(logoutResponse!.Message, Severity.Info);
+                SnackBar.Add("Successfully logged out!", Severity.Info);
             }
         }
         catch (Exception ex)

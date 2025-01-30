@@ -21,7 +21,7 @@
                 return string.Empty;
             }
 
-            var token = context.Session.GetString("UserRole");
+            var token = context.Session.GetString("AuthToken");
 
             return string.IsNullOrWhiteSpace(token) ? string.Empty : token;
         }

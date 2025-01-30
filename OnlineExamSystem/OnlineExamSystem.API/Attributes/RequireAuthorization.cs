@@ -20,9 +20,7 @@ namespace OnlineExamSystem.API.Attributes
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var token = context.HttpContext.GetAuthToken();
-
-            if (string.IsNullOrWhiteSpace(token))
+            if (!context.HttpContext.IsUserLoggedIn())
             {
                 context.Result = new UnauthorizedResult();
                 return;
@@ -35,8 +33,11 @@ namespace OnlineExamSystem.API.Attributes
                 if (string.IsNullOrWhiteSpace(userRole) || !_roles.Contains(userRole))
                 {
                     context.Result = new ForbidResult();
+                    return;
                 }
             }
+
+            context.Result = new OkResult();
         }
     }
 }
