@@ -33,9 +33,10 @@ else
                     <MudTd>
                         @if (context.AuthorId != null)
                         {
-                            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
+                            <a class="btn btn-success" href="@($"/StartExam/{context.Id}")">Започни изпита</a>
+                            @* <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="() => StartExam(context.Id)">
                                 Започни изпита
-                            </MudButton>
+                            </MudButton> *@
                         }
                         else
                         {
@@ -102,7 +103,7 @@ else
 
     private void StartExam(Guid examId)
     {
-        // Redirect to the exam page or take specific action
+        NavigationManager.NavigateTo($"/Exam/{examId}");
         Snackbar.Add("Starting exam...", Severity.Info);
     }
 }

@@ -31,6 +31,15 @@ namespace OnlineExamSystem.Services
         {
             return await _questions.ToListAsync();
         }
+        
+        public async Task<IEnumerable<Question>> GetQuestionsForExam(Guid examId)
+        {
+            var questionsByExam =  await _questions
+                .Where(q => q.ExamId == examId)
+                .ToListAsync();
+
+            return questionsByExam;
+        }
 
         public async Task<Guid> CreateQuestion(Question question)
         {

@@ -1,0 +1,103 @@
+﻿@page "/StartExam/{ExamId}";
+
+@using OnlineExamSystem.Data.Models
+@using Newtonsoft.Json
+
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager NavigationManager
+@inject ISnackbar SnackBar
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+
+else
+{
+    <h1>@_examTitle</h1>
+    <h5>@_examDescription</h5>
+
+    @if (_questions.Count == 0)
+    {
+        <p style="color: red;">Няма въведени въпроси за този изпит все още.</p>
+    }
+    else
+    {
+        <EditForm Model="@_studentAnswers" OnSubmit="@NavigateToDashboard">
+ 
+            @foreach (var question in _questions)
+            {
+                <div class="question">
+                    <h5>@question.QuestionText</h5>
+                    <textarea rows="2" class="form-control"></textarea>
+                </div>
+                <hr/>
+            }
+            <button type="submit" class="btn btn-success">Предаване</button>
+         </EditForm> 
+    }
+}
+
+@code {
+    [Parameter]
+    public string ExamId { get; set; }
+
+    private string _examTitle = string.Empty;
+    private string _examDescription = string.Empty;
+    private List<Question> _questions = new();
+    private Dictionary<Guid, string> _studentAnswers = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var examIdGuid = Guid.Parse(ExamId);
+
+        var settings = new JsonSerializerSettings
+        {
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects
+        };
+
+        try
+        {
+            var client = ClientFactory.CreateClient("API");
+
+            var examResponse = await client.GetAsync($"api/Exams/{examIdGuid}");
+            var examContent = await examResponse.Content.ReadAsStringAsync();
+            var exam = JsonConvert.DeserializeObject<Exam>(examContent, settings);
+
+            var questionsResponse = await client.GetAsync($"api/Questions/QuestionsByExam/{examIdGuid}");
+            var questionsContent = await questionsResponse.Content.ReadAsStringAsync();
+            var questionsForExam = JsonConvert.DeserializeObject<IEnumerable<Question>>(questionsContent, settings);
+
+            if (examResponse != null)
+            {
+                _examTitle = exam.Title;
+                _examDescription = exam.Description ?? "N/A";
+
+                foreach (var question in _questions)
+                {
+                    _studentAnswers[question.Id] = string.Empty;
+                }
+            }
+
+            if (questionsForExam.Any())
+            {
+                _questions = questionsForExam.ToList();
+            }
+        }
+        catch (Exception ex)
+        {
+            SnackBar.Add($"Error loading exams: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToDashboard()
+    {
+        NavigationManager.NavigateTo("/Dashboard");
+    }
+}

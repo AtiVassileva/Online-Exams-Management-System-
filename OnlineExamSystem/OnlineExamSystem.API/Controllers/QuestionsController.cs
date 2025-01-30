@@ -9,16 +9,37 @@ namespace OnlineExamSystem.API.Controllers
     public class QuestionsController : ControllerBase
     {
         private readonly QuestionService _questionService;
+        private readonly ExamService _examService;
 
-        public QuestionsController(QuestionService questionService)
+        public QuestionsController(QuestionService questionService, ExamService examService)
         {
             _questionService = questionService;
+            _examService = examService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Question>>> GetQuestions()
         {
             return Ok(await _questionService.GetAllQuestions());
+        }
+        
+        [HttpGet("QuestionsByExam/{examId}")]
+        public async Task<ActionResult<IEnumerable<Question>>> GetQuestionsForExam(Guid examId)
+        {
+            try
+            {
+                var exam = await _examService.GetExamById(examId);
+                var questionsByExam = await _questionService.GetQuestionsForExam(exam.Id);
+                return Ok(questionsByExam);
+            }
+            catch (NullReferenceException nre)
+            {
+                return NotFound(nre.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
         }
 
         [HttpGet("{id}")]
